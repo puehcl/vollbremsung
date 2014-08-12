@@ -25,27 +25,34 @@ if __FILE__ == $0
   USAGE = "Usage: vollbremsung [options] <target_directory>"
   
   options = {}
-  OptionParser.new do |opts|
-    opts.banner = USAGE
-    opts.separator ""
+  begin 
+    OptionParser.new do |opts|
+      opts.banner = USAGE
+      opts.separator ""
 
-    opts.on("-d", "--delete", "Delete source files after successful encoding") do |flag|
-      options[:delete]  = true
-    end
-    opts.separator ""
+      opts.on("-d", "--delete", "Delete source files after successful encoding") do |flag|
+        options[:delete]  = true
+      end
+      opts.separator ""
     
-    opts.on("-r", "--rename", "Rename source files to <FILENAME>.old after successful encoding") do |flag|
-      options[:rename] = true
-    end
-    opts.separator ""
+      opts.on("-r", "--rename", "Rename source files to <FILENAME>.old after successful encoding") do |flag|
+        options[:rename] = true
+      end
+      opts.separator ""
     
-    opts.on_tail("-h", "--help", "Show this message") do
-      puts opts
-      exit
-    end
-    opts.separator ""
-  
-  end.parse! # do the parsing. do it now!
+      opts.on_tail("-h", "--help", "Show this message") do
+        puts opts
+        exit
+      end
+      opts.separator ""
+    end.parse! # do the parsing. do it now!
+  rescue
+    puts "Option parsing not supported on your system. All options will be ignored."
+    puts "To enable support run 'gem install optparse'"
+    options[:delete] = false
+    options[:rename] = false
+  end
+
 
   if ARGV[0].nil? 
     puts "No target directory provided."
@@ -65,15 +72,16 @@ if __FILE__ == $0
     exit 1
   end
   
-  unless find_executable 'HandbrakeCLI'
+  unless find_executable('HandbrakeCLI') || find_executable('HandBrakeCLI')
     puts "It seems you do not have HandbrakeCLI installed or it is not available in your $PATH."
-    #exit 1
+    puts "Install it an run again"
+    exit 1
   end
   
   unless find_executable 'ffprobe'
     puts "It seems you do not have ffprobe installed or it is not available in your $PATH."
     puts "ffprobe is part of ffmpeg. Install it for your system and run again."
-    #exit 1
+    exit 1
   end
   
   $time = Time.new
