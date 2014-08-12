@@ -86,7 +86,7 @@ if __FILE__ == $0
   
   $time = Time.new
   CONVERT_TYPES = ['mkv','avi','mov','flv','mpg','wmv']
-  HANDBRAKE="-e x264 -q 20.0 -a 1 -E faac -B 160 -6 dpl2 -R Auto -D 0.0 -f mp4 -m --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
+  HANDBRAKE_OPTIONS="--encoder x264 --quality 20.0 -a 1 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
   
   src_files = []
   
@@ -105,45 +105,41 @@ if __FILE__ == $0
     
     metadata = probe(infile)
     
-    audio_stream_count = 0
-    audio_stream_names = []
-    
-    video_stream_count = 0
-    video_stream_names = []
-    
-    subtitle_stream_count = 0
-    subtitle_stream_names = []
+    StreamStruct = Struct.new(:count,:names)
+    audio_streams = StreamStruct.new(0,[])
+    video_streams = StreamStruct.new(0,[])
+    subtitle_streams = StreamStruct.new(0,[])
     
     metadata['streams'].each do |stream|
       case stream['codec_type']
       when 'audio'  
-        audio_stream_count += 1
-        audio_stream_names << stream['tags']['title']
+        audio_streams.count += 1
+        audio_streams.names << stream['tags']['title']
       when 'video' 
-        video_stream_count += 1
-        video_stream_names << stream['tags']['title']
+        video_streams.count += 1
+        video_streams.names << stream['tags']['title']
       when 'subtitle' 
-        subtitle_stream_count += 1
-        subtitle_stream_names << stream['tags']['title']
+        subtitle_streams.count += 1
+        subtitle_streams.names << stream['tags']['title']
       else 
         log "wow, there is a funny stream inside this file (codec_type: #{stream['codec_type']})"
       end
     end
     
-    puts "audio stream count: #{audio_stream_count}"
-    puts audio_stream_names.join(',')
+    puts "audio stream count: #{audio_streams.count}"
+    puts audio_streams.names.join(',')
     
-    puts "video stream count: #{video_stream_count}"
-    puts video_stream_names.join(',')
+    puts "video stream count: #{video_streams.count}"
+    puts video_streams.names.join(',')
     
-    puts "subtitle stream count: #{subtitle_stream_count}"
-    puts subtitle_stream_names.join(',')
+    puts "subtitle stream count: #{subtitle_streams.count}"
+    puts subtitle_streams.names.join(',')
     
-    audio_channel_info = (1..audio_stream_count).to_a.join(',')
-    video_channel_info = (1..video_stream_count).to_a.join(',')
-    subtitle_channel_info = (1..subtitle_stream_count).to_a.join(',')
+    audio_channel_info = (1..audio_streams.count).to_a.join(',')
+    video_channel_info = (1..video_streams.count).to_a.join(',')
+    subtitle_channel_info = (1..subtitle_streams.count).to_a.join(',')
     
-    #outfile = "#{File.basename(infile)}.mp4"
+    outfile = "#{File.basename(infile)}.mp4"
     
     #log "#{infile} --> #{outfile}"
     
