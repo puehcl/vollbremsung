@@ -7,7 +7,7 @@ require 'open3'
 require 'json'
 
 def log(msg)
-  puts $time.strftime("%Y-%m-%d %H:%M:%S") +  "\t #{msg}"
+  puts $time.strftime("%Y-%m-%d %H:%M:%S") +  " #{msg}"
 end
 
 def probe(file)
@@ -37,6 +37,11 @@ if __FILE__ == $0
     
       opts.on("-r", "--rename", "Rename source files to <FILENAME>.old after successful encoding") do |flag|
         options[:rename] = true
+      end
+      opts.separator ""
+      
+      opts.on("-t", "--title", "Set the mp4 title to the filename") do |flag|
+        options[:title] = true
       end
       opts.separator ""
     
@@ -103,48 +108,73 @@ if __FILE__ == $0
   end
   
   log "Files found:"
-  puts src_files
+  src_files.each do |file|
+    puts "* #{file}"
+  end
 
   Dir.chdir(TARGET_DIR_PATH)
   
   src_files.each do |infile|
     
     metadata = probe(infile)
+    if metadata.nil?
+      log "ERROR retrieving metadata -- skipping this file"
+      next
+    end
     
     StreamStruct = Struct.new(:count,:names)
-    audio_streams = StreamStruct.new(0,[])
-    video_streams = StreamStruct.new(0,[])
-    subtitle_streams = StreamStruct.new(0,[])
+    astreams = StreamStruct.new(0,[]) # audio streams
+    sstreams = StreamStruct.new(0,[]) # subtitle streams
     
     metadata['streams'].each do |stream|
       case stream['codec_type']
       when 'audio'  
-        audio_streams.count += 1
-        audio_streams.names << stream['tags']['title']
-      when 'video' 
-        video_streams.count += 1
-        video_streams.names << stream['tags']['title']
+        astreams.count += 1
+        astreams.names << stream['tags']['title']
       when 'subtitle' 
-        subtitle_streams.count += 1
-        subtitle_streams.names << stream['tags']['title']
+        sstreams.count += 1
+        sstreams.names << stream['tags']['title']
       else 
         # this is attachment stuff, like typefonts --> ignore
       end
     end
 
-    outfile = "#{File.basename(infile, File.extname(infile))}.mp4"
+    filename = File.basename(infile, File.extname(infile)) # without ext
+    outfile = "#{filename}.mp4"
     
     log "#{infile} --> #{outfile}"
     
-    puts "#{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..audio_streams.count).to_a.join(',')} --aname #{audio_streams.names.join(',')} --subtitle #{(1..subtitle_streams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1"
+    #puts "#{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..astreams.count).to_a.join(',')} --aname #{astreams.names.join(',')} --subtitle #{(1..sstreams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1"
     
-    #%x( HandbrakeCLI #{HANDBRAKE} -i \"#{infile}\" -o \"#{outfile}\" 2>&1 )
+    %x( #{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..astreams.count).to_a.join(',')} --aname #{astreams.names.join(',')} --subtitle #{(1..sstreams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1 )
     
-    #if $?.exitstatus == 0
-    #  log "SUCCESS: encoding done"
-    #else 
-    #  log "ERROR: Handbrake exited with an error"
-    #end
+    if $?.exitstatus == 0
+      log "SUCCESS: encoding done"
+      
+      if options[:rename]
+        log "renaming #{infile} to .old"
+        File.rename infile, "#{infile}.old" 
+      end
+      
+      if options[:title]
+        log "setting mp4 title"
+        puts "ffmpeg -i \"#{outfile}\" -metadata title=\"#{filename}\"  -acodec copy -vcodec copy -scodec copy \"#{outfile}.neu\""
+        %x( ffmpeg -i \"#{outfile}\" -metadata title=\"#{filename}\"  -acodec copy -vcodec copy -scodec copy \"#{outfile}.neu\" )
+         if $?.exitstatus == 0
+           begin
+             File.delete outfile
+             File.rename "#{outfile}.neu", outfile 
+           rescue
+             log "ERROR: moving #{outfile}.neu to #{outfile}"
+           end
+         else
+           log "ERROR: it seems the mp4 title could not be changed"
+         end
+      end
+    
+    else 
+      log "ERROR: Handbrake exited with an error"
+    end
     log "" # just to make output prettier
   end
   
