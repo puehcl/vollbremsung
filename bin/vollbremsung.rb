@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 # -*- encoding : utf-8 -*-
 
-require 'optparse'
 require 'mkmf' # part of stdlib
 require 'open3'
 require 'json'
@@ -26,6 +25,7 @@ if __FILE__ == $0
   
   options = {}
   begin 
+    require 'optparse'
     OptionParser.new do |opts|
       opts.banner = USAGE
       opts.separator ""
@@ -51,7 +51,7 @@ if __FILE__ == $0
       end
       opts.separator ""
     end.parse! # do the parsing. do it now!
-  rescue
+  rescue LoadError
     puts "Option parsing not supported on your system. All options will be ignored."
     puts "To enable support run 'gem install optparse'"
     options[:delete] = false
@@ -130,10 +130,10 @@ if __FILE__ == $0
       case stream['codec_type']
       when 'audio'  
         astreams.count += 1
-        astreams.names << stream['tags']['title'] unless stream['tags'].nil? || stream['tags']['title']
+        astreams.names << stream['tags']['title'] unless stream['tags'].nil? || stream['tags']['title'].nil?
       when 'subtitle' 
         sstreams.count += 1
-        sstreams.names << stream['tags']['title'] unless stream['tags'].nil? || stream['tags']['title']
+        sstreams.names << stream['tags']['title'] unless stream['tags'].nil? || stream['tags']['title'].nil?
       else 
         # this is attachment stuff, like typefonts --> ignore
       end
@@ -177,6 +177,9 @@ if __FILE__ == $0
     end
   end
   
-  log "all items processed"
-
+  if target_files.empty?
+    log "nothing to do"
+  else
+    log "all items processed"
+  end
 end
