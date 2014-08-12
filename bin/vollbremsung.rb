@@ -10,7 +10,7 @@ def log(msg)
   puts $time.strftime("%Y-%m-%d %H:%M:%S") +  " #{msg}"
 end
 
-def probe(file)
+def ffprobe(file)
   stdout,stderr,status = Open3.capture3("ffprobe -v quiet -print_format json -show_format -show_streams \"#{file}\"")
   if status.success?
     return JSON.parse(stdout)
@@ -116,7 +116,7 @@ if __FILE__ == $0
   
   src_files.each do |infile|
     
-    metadata = probe(infile)
+    metadata = ffprobe(infile)
     if metadata.nil?
       log "ERROR retrieving metadata -- skipping this file"
       next
@@ -142,10 +142,8 @@ if __FILE__ == $0
     filename = File.basename(infile, File.extname(infile)) # without ext
     outfile = "#{filename}.mp4"
     
-    log "#{infile} --> #{outfile}"
-    
-    #puts "#{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..astreams.count).to_a.join(',')} --aname #{astreams.names.join(',')} --subtitle #{(1..sstreams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1"
-    
+    log "processing #{infile} --> #{outfile}"
+
     %x( #{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..astreams.count).to_a.join(',')} --aname #{astreams.names.join(',')} --subtitle #{(1..sstreams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1 )
     
     if $?.exitstatus == 0
@@ -158,17 +156,19 @@ if __FILE__ == $0
       
       if options[:title]
         log "setting mp4 title"
-        puts "ffmpeg -i \"#{outfile}\" -metadata title=\"#{filename}\"  -acodec copy -vcodec copy -scodec copy \"#{outfile}.neu\""
-        %x( ffmpeg -i \"#{outfile}\" -metadata title=\"#{filename}\"  -acodec copy -vcodec copy -scodec copy \"#{outfile}.neu\" )
+        
+        tmpfile = filename + ".tmp.mp4"
+        
+        %x( ffmpeg -i \"#{outfile}\" -metadata title=\"#{filename}\" -map 0 -acodec copy -vcodec copy -scodec copy \"#{tmpfile}\" 2>&1 )
          if $?.exitstatus == 0
            begin
              File.delete outfile
-             File.rename "#{outfile}.neu", outfile 
+             File.rename tmpfile, outfile 
            rescue
-             log "ERROR: moving #{outfile}.neu to #{outfile}"
+             log "ERROR: moving #{tmpfile} to #{outfile}"
            end
          else
-           log "ERROR: it seems the mp4 title could not be changed"
+           log "ERROR: mp4 title could not be changed"
          end
       end
     
