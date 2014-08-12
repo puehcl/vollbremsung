@@ -22,7 +22,7 @@ end
 
 if __FILE__ == $0
 
-  USAGE = "Usage: vollbremsung [options] <target_directory>"
+  USAGE = "Usage: vollbremsung [options] <target>"
   
   options = {}
   begin 
@@ -98,8 +98,10 @@ if __FILE__ == $0
   File.delete 'mkmf.log' # find_executable seems to create such file in case executable is not found
   
   $time = Time.new
+  StreamStruct = Struct.new(:count,:names)
   CONVERT_TYPES = ['mkv','avi','mov','flv','mpg','wmv']
   HANDBRAKE_OPTIONS="--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
+  
   
   log "probing for target files..."
   target_files = []
@@ -126,7 +128,6 @@ if __FILE__ == $0
       next
     end
     
-    StreamStruct = Struct.new(:count,:names)
     astreams = StreamStruct.new(0,[]) # audio streams
     sstreams = StreamStruct.new(0,[]) # subtitle streams
     
@@ -134,10 +135,10 @@ if __FILE__ == $0
       case stream['codec_type']
       when 'audio'  
         astreams.count += 1
-        astreams.names << stream['tags']['title']
+        astreams.names << stream['tags']['title'] unless stream['tags'].nil? || stream['tags']['title']
       when 'subtitle' 
         sstreams.count += 1
-        sstreams.names << stream['tags']['title']
+        sstreams.names << stream['tags']['title'] unless stream['tags'].nil? || stream['tags']['title']
       else 
         # this is attachment stuff, like typefonts --> ignore
       end
@@ -146,7 +147,7 @@ if __FILE__ == $0
     filename = File.basename(infile, File.extname(infile)) # without ext
     outfile = "#{filename}.mp4"
     
-    log "processing #{infile} --> #{outfile}"
+    log "processing #{infile}"
 
     %x( #{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..astreams.count).to_a.join(',')} --aname #{astreams.names.join(',')} --subtitle #{(1..sstreams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1 )
     
