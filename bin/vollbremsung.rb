@@ -132,7 +132,7 @@ if __FILE__ == $0
       end
     end
 
-    outfile = "#{File.basename(infile)}.mp4"
+    outfile = "#{File.basename(infile, File.extname(infile))}.mp4"
     
     log "#{infile} --> #{outfile}"
     
