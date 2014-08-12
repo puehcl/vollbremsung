@@ -65,14 +65,14 @@ if __FILE__ == $0
     exit 1
   end
   
-  TARGET_DIR_PATH = ARGV[0]
+  TARGET_PATH = ARGV[0]
   
-  unless File.exists?(TARGET_DIR_PATH)
+  unless File.exists?(TARGET_PATH)
     puts "The target path you provided does not exists."
     exit 1
   end
   
-  unless File.directory?(TARGET_DIR_PATH)
+  unless File.directory?(TARGET_PATH)
     puts "The target path you provided is not a directory."
     exit 1
   end
@@ -95,26 +95,30 @@ if __FILE__ == $0
     exit 1
   end
   
+  File.delete 'mkmf.log' # find_executable seems to create such file in case executable is not found
+  
   $time = Time.new
   CONVERT_TYPES = ['mkv','avi','mov','flv','mpg','wmv']
   HANDBRAKE_OPTIONS="--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
   
-  src_files = []
-  
-  Dir.entries(TARGET_DIR_PATH).each do |file|
-    if CONVERT_TYPES.include?(File.extname(file).downcase[1..-1])
-      src_files << file
+  log "probing for target files..."
+  target_files = []
+  if File.directory?(TARGET_PATH)
+    Dir.entries(TARGET_PATH).each do |file|
+      target_files << file if CONVERT_TYPES.include?(File.extname(file).downcase[1..-1])
     end
+  else
+    target_files << TARGET_PATH
   end
   
   log "Files found:"
-  src_files.each do |file|
+  target_files.each do |file|
     puts "* #{file}"
   end
 
-  Dir.chdir(TARGET_DIR_PATH)
+  Dir.chdir(TARGET_PATH)
   
-  src_files.each do |infile|
+  target_files.each do |infile|
     
     metadata = ffprobe(infile)
     if metadata.nil?
@@ -175,7 +179,6 @@ if __FILE__ == $0
     else 
       log "ERROR: Handbrake exited with an error"
     end
-    log "" # just to make output prettier
   end
   
   log "conversion list FINISHED"
