@@ -128,7 +128,7 @@ if __FILE__ == $0
         subtitle_streams.count += 1
         subtitle_streams.names << stream['tags']['title']
       else 
-        log "wow, there is a funny stream inside this file (codec_type: #{stream['codec_type']})"
+        # this is attachment stuff, like typefonts --> ignore
       end
     end
 
