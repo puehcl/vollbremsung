@@ -72,10 +72,16 @@ if __FILE__ == $0
     exit 1
   end
   
-  unless find_executable('HandbrakeCLI') || find_executable('HandBrakeCLI')
-    puts "It seems you do not have HandbrakeCLI installed or it is not available in your $PATH."
-    puts "Install it an run again"
-    exit 1
+  unless find_executable('HandbrakeCLI') 
+    unless find_executable('HandBrakeCLI')
+      puts "It seems you do not have HandbrakeCLI installed or it is not available in your $PATH."
+      puts "Install it an run again"
+      exit 1
+    else
+      HANDBRAKE_CLI = "HandBrakeCLI" # this is the FreeBSD version
+    end
+  else
+    HANDBRAKE_CLI = "HandbrakeCLI" # OSX version
   end
   
   unless find_executable 'ffprobe'
@@ -86,7 +92,7 @@ if __FILE__ == $0
   
   $time = Time.new
   CONVERT_TYPES = ['mkv','avi','mov','flv','mpg','wmv']
-  HANDBRAKE_OPTIONS="--encoder x264 --quality 20.0 -a 1 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
+  HANDBRAKE_OPTIONS="--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
   
   src_files = []
   
@@ -125,23 +131,12 @@ if __FILE__ == $0
         log "wow, there is a funny stream inside this file (codec_type: #{stream['codec_type']})"
       end
     end
-    
-    puts "audio stream count: #{audio_streams.count}"
-    puts audio_streams.names.join(',')
-    
-    puts "video stream count: #{video_streams.count}"
-    puts video_streams.names.join(',')
-    
-    puts "subtitle stream count: #{subtitle_streams.count}"
-    puts subtitle_streams.names.join(',')
-    
-    audio_channel_info = (1..audio_streams.count).to_a.join(',')
-    video_channel_info = (1..video_streams.count).to_a.join(',')
-    subtitle_channel_info = (1..subtitle_streams.count).to_a.join(',')
-    
+
     outfile = "#{File.basename(infile)}.mp4"
     
-    #log "#{infile} --> #{outfile}"
+    log "#{infile} --> #{outfile}"
+    
+    puts "#{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..audio_streams.count).to_a.join(',')} --aname #{audio_streams.names.join(',')} --subtitle #{(1..subtitle_streams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1"
     
     #%x( HandbrakeCLI #{HANDBRAKE} -i \"#{infile}\" -o \"#{outfile}\" 2>&1 )
     
