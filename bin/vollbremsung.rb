@@ -72,11 +72,6 @@ if __FILE__ == $0
     exit 1
   end
   
-  unless File.directory?(TARGET_PATH)
-    puts "The target path you provided is not a directory."
-    exit 1
-  end
-  
   unless find_executable('HandbrakeCLI') 
     unless find_executable('HandBrakeCLI')
       puts "It seems you do not have HandbrakeCLI installed or it is not available in your $PATH."
@@ -100,7 +95,8 @@ if __FILE__ == $0
   $time = Time.new
   StreamStruct = Struct.new(:count,:names)
   CONVERT_TYPES = ['mkv','avi','mov','flv','mpg','wmv']
-  HANDBRAKE_OPTIONS="--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
+  HANDBRAKE_OPTIONS = "--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
+  FFMPEG_OPTIONS = "-map 0 -acodec copy -vcodec copy -scodec copy"
   
   
   log "probing for target files..."
@@ -147,7 +143,7 @@ if __FILE__ == $0
     filename = File.basename(infile, File.extname(infile)) # without ext
     outfile = "#{filename}.mp4"
     
-    log "processing #{infile}"
+    log "processing: #{infile}"
 
     %x( #{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..astreams.count).to_a.join(',')} --aname #{astreams.names.join(',')} --subtitle #{(1..sstreams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1 )
     
@@ -164,7 +160,7 @@ if __FILE__ == $0
         
         tmpfile = filename + ".tmp.mp4"
         
-        %x( ffmpeg -i \"#{outfile}\" -metadata title=\"#{filename}\" -map 0 -acodec copy -vcodec copy -scodec copy \"#{tmpfile}\" 2>&1 )
+        %x( ffmpeg -i \"#{outfile}\" -metadata title=\"#{filename}\" #{FFMPEG_OPTIONS} \"#{tmpfile}\" 2>&1 )
          if $?.exitstatus == 0
            begin
              File.delete outfile
