@@ -7,7 +7,7 @@ require 'open3'
 require 'json'
 
 def log(msg)
-  puts $time.strftime("%Y-%m-%d %H:%M:%S") +  " #{msg}"
+  puts Time.new.strftime("%Y-%m-%d %H:%M:%S") +  " #{msg}"
 end
 
 def ffprobe(file)
@@ -92,7 +92,6 @@ if __FILE__ == $0
   
   File.delete 'mkmf.log' # find_executable seems to create such file in case executable is not found
   
-  $time = Time.new
   StreamStruct = Struct.new(:count,:names)
   CONVERT_TYPES = ['mkv','avi','mov','flv','mpg','wmv']
   HANDBRAKE_OPTIONS = "--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
@@ -178,6 +177,6 @@ if __FILE__ == $0
     end
   end
   
-  log "conversion list FINISHED"
+  log "all items processed"
 
 end
