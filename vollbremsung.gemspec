@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'vollbremsung'
-  s.version     = '0.0.1'
+  s.version     = '0.0.2'
   s.date        = '2014-08-13'
   s.summary     = "Handbrake bulk encoding tool"
   s.description = "Handbrake bulk encoding tool"
