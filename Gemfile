@@ -1,5 +1,4 @@
-gem 'json' 
-gem 'mkmf' # part of stdlib
-gem 'open3'
-gem 'json'
-gem 'handbrake'
+source 'https://rubygems.org'
+
+# Specify your gem's dependencies in vollbremsung.gemspec
+gemspec

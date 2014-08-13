@@ -5,6 +5,7 @@ require 'mkmf' # part of stdlib
 require 'open3'
 require 'json'
 require 'handbrake'
+require 'vollbremsung'
 
 def log(msg)
   puts Time.new.strftime("%Y-%m-%d %H:%M:%S") +  " #{msg}"
@@ -22,13 +23,11 @@ end
 
 if __FILE__ == $0
 
-  USAGE = "Usage: vollbremsung [options] <target>"
-  
   options = {}
   begin 
     require 'optparse'
     OptionParser.new do |opts|
-      opts.banner = USAGE
+      opts.banner = Vollbremsung::USAGE
       opts.separator ""
 
       opts.on("-d", "--delete", "Delete source files after successful encoding") do |flag|
@@ -64,7 +63,7 @@ if __FILE__ == $0
 
   if ARGV[0].nil? 
     puts "No target directory provided."
-    puts USAGE
+    puts Vollbremsung::USAGE
     exit 1
   end
   
@@ -95,11 +94,9 @@ if __FILE__ == $0
   
   File.delete 'mkmf.log' # find_executable seems to create such file in case executable is not found
   
-  StreamStruct = Struct.new(:count,:names)
-  CONVERT_TYPES = ['mkv','avi','mov','flv','mpg','wmv']
-  #HANDBRAKE_OPTIONS = "--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
-  FFMPEG_OPTIONS = "-map 0 -acodec copy -vcodec copy -scodec copy"
+  #StreamStruct = Struct.new(:count,:names)
   
+  #HANDBRAKE_OPTIONS = "--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
   
   log "probing for target files..."
   target_files = []
@@ -110,7 +107,7 @@ if __FILE__ == $0
     
     Dir[TARGET_PATH + scope].sort.each do |file|
       unless File.directory?(file)
-        if CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
+        if Vollbremsung::CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
           puts "* " + file[TARGET_PATH.length+1..-1] 
           target_files << file 
         end
@@ -129,9 +126,9 @@ if __FILE__ == $0
       log "ERROR retrieving metadata -- skipping this file"
       next
     end
-    
-    astreams = StreamStruct.new(0,[]) # audio streams
-    sstreams = StreamStruct.new(0,[]) # subtitle streams
+
+    astreams = Vollbremsung::StreamDescr.new
+    sstreams = Vollbremsung::StreamDescr.new
     
     metadata['streams'].each do |stream|
       case stream['codec_type']
@@ -191,7 +188,7 @@ if __FILE__ == $0
         infile_noext = File.join( File.dirname(infile), File.basename(infile,File.extname(infile)))
         tmpfile = infile_noext + ".tmp.mp4"
       
-        %x( ffmpeg -i \"#{outfile}\" -metadata title=\"#{infile_basename_noext}\" #{FFMPEG_OPTIONS} \"#{tmpfile}\" 2>&1 )
+        %x( ffmpeg -i \"#{outfile}\" -metadata title=\"#{infile_basename_noext}\" #{Vollbremsung::FFMPEG_OPTIONS} \"#{tmpfile}\" 2>&1 )
       
         if $?.exitstatus == 0
           begin
