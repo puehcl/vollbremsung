@@ -32,6 +32,10 @@ begin
       options[:delete]  = true
     end
 
+    opts.on("--list-only", "List matching files only. Do not run processing") do |flag|
+      options[:list_only]  = true
+    end
+
     opts.on("-m", "--move", "Move source files to <FILENAME>.old after successful encoding") do |flag|
       options[:move] = true
     end
@@ -78,21 +82,24 @@ if options[:move] && options[:delete]
   exit 1
 end
 
-unless find_executable('HandbrakeCLI') || find_executable('HandBrakeCLI')
-  puts "It seems you do not have HandbrakeCLI installed or it is not available in your $PATH."
-  puts "Install it an run again"
-  exit 1
+# probe for required executable
+# only do this if not in list-only mode
+unless options[:list_only]
+  unless find_executable('HandbrakeCLI') || find_executable('HandBrakeCLI')
+    puts "It seems you do not have HandbrakeCLI installed or it is not available in your $PATH."
+    puts "You can get the executable from http://handbrake.fr/downloads.php"
+    exit 1
+  end
+
+  unless find_executable 'ffprobe'
+    puts "It seems you do not have ffprobe installed or it is not available in your $PATH."
+    puts "ffprobe is part of ffmpeg. Install it for your system and run again."
+    exit 1
+  end
 end
 
-unless find_executable 'ffprobe'
-  puts "It seems you do not have ffprobe installed or it is not available in your $PATH."
-  puts "ffprobe is part of ffmpeg. Install it for your system and run again."
-  exit 1
-end
 
-File.delete 'mkmf.log' # find_executable seems to create such file in case executable is not found
-
-#StreamStruct = Struct.new(:count,:names)
+File.delete 'mkmf.log' rescue nil# find_executable seems to create such file in case executable is not found
 
 #HANDBRAKE_OPTIONS = "--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
 
@@ -116,6 +123,8 @@ else
   puts "* " + TARGET_PATH
   target_files << File.absolute_path(TARGET_PATH)
 end
+
+exit if options[:list_only]
 
 target_files.each do |infile|
   
@@ -181,7 +190,7 @@ target_files.each do |infile|
     log "compression ratio: %.2f" % (outfile_size.to_f / infile_size.to_f)
       
     if options[:title]
-      log "setting mp4 title"
+      log "setting MP4 title"
     
       infile_noext = File.join( File.dirname(infile), File.basename(infile,File.extname(infile)))
       tmpfile = infile_noext + ".tmp.mp4"
@@ -196,7 +205,7 @@ target_files.each do |infile|
           log "ERROR: moving #{tmpfile} to #{outfile}"
         end
       else
-        log "ERROR: mp4 title could not be changed"
+        log "ERROR: MP4 title could not be changed"
       end
     end # if options[:title]
     
