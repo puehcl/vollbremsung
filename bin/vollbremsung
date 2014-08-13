@@ -4,6 +4,7 @@
 require 'mkmf' # part of stdlib
 require 'open3'
 require 'json'
+require 'optparse'
 require 'handbrake'
 require 'vollbremsung'
 
@@ -22,45 +23,36 @@ def ffprobe(file)
 end
 
 options = {}
-begin 
-  require 'optparse'
-  OptionParser.new do |opts|
-    opts.banner = Vollbremsung::USAGE
-    opts.separator ""
 
-    opts.on("-d", "--delete", "Delete source files after successful encoding") do |flag|
-      options[:delete]  = true
-    end
+OptionParser.new do |opts|
+  opts.banner = Vollbremsung::USAGE
+  opts.separator ""
 
-    opts.on("--list-only", "List matching files only. Do not run processing") do |flag|
-      options[:list_only]  = true
-    end
+  opts.on("-d", "--delete", "Delete source files after successful encoding") do |flag|
+    options[:delete]  = true
+  end
 
-    opts.on("-m", "--move", "Move source files to <FILENAME>.old after successful encoding") do |flag|
-      options[:move] = true
-    end
+  opts.on("--list-only", "List matching files only. Do not run processing") do |flag|
+    options[:list_only]  = true
+  end
 
-    opts.on("-r", "--recursive", "Process all file in subdirectories recursively as well") do |flag|
-      options[:recursive] = true
-    end
+  opts.on("-m", "--move", "Move source files to <FILENAME>.old after successful encoding") do |flag|
+    options[:move] = true
+  end
 
-    opts.on("-t", "--title", "Set the mp4 title to the filename") do |flag|
-      options[:title] = true
-    end
+  opts.on("-r", "--recursive", "Process all file in subdirectories recursively as well") do |flag|
+    options[:recursive] = true
+  end
 
-    opts.on_tail("-h", "--help", "Show this message") do
-      puts opts
-      exit
-    end
-  end.parse! # do the parsing. do it now!
-rescue LoadError
-  puts "Option parsing not supported on your system. All options will be ignored."
-  puts "To enable support run 'gem install optparse'"
-  options[:delete] = false
-  options[:move] = false
-  options[:recursive] = false
-  options[:title] = false
-end
+  opts.on("-t", "--title", "Set the mp4 title to the filename") do |flag|
+    options[:title] = true
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+end.parse! # do the parsing. do it now!
 
 
 if ARGV[0].nil? 
