@@ -34,28 +34,23 @@ if __FILE__ == $0
       opts.on("-d", "--delete", "Delete source files after successful encoding") do |flag|
         options[:delete]  = true
       end
-      opts.separator ""
-    
+
       opts.on("-m", "--move", "Move source files to <FILENAME>.old after successful encoding") do |flag|
         options[:move] = true
       end
-      opts.separator ""
-      
+
       opts.on("-r", "--recursive", "Process all file in subdirectories recursively as well") do |flag|
         options[:recursive] = true
       end
-      opts.separator ""
-      
+
       opts.on("-t", "--title", "Set the mp4 title to the filename") do |flag|
         options[:title] = true
       end
-      opts.separator ""
-    
+
       opts.on_tail("-h", "--help", "Show this message") do
         puts opts
         exit
       end
-      opts.separator ""
     end.parse! # do the parsing. do it now!
   rescue LoadError
     puts "Option parsing not supported on your system. All options will be ignored."
@@ -77,6 +72,12 @@ if __FILE__ == $0
   
   unless File.exists?(TARGET_PATH)
     puts "The target path you provided does not exists."
+    exit 1
+  end
+  
+  if options[:move] && options[:delete]
+    puts "--delete (-d) and --move (-m) are mutually exclusive - choose one!"
+    puts "It is not possible to delete and move the source files at the same time."
     exit 1
   end
   
@@ -145,7 +146,7 @@ if __FILE__ == $0
       end
     end
 
-    infile_noext = File.join( File.dirname(infile), File.basename(infile,File.extname(infile)))
+    
     infile_basename = File.basename(infile)
     infile_basename_noext = File.basename(infile, File.extname(infile)) # without ext
     infile_dirname = File.dirname(infile)
@@ -187,6 +188,7 @@ if __FILE__ == $0
       if options[:title]
         log "setting mp4 title"
       
+        infile_noext = File.join( File.dirname(infile), File.basename(infile,File.extname(infile)))
         tmpfile = infile_noext + ".tmp.mp4"
       
         %x( ffmpeg -i \"#{outfile}\" -metadata title=\"#{infile_basename_noext}\" #{FFMPEG_OPTIONS} \"#{tmpfile}\" 2>&1 )
