@@ -179,10 +179,11 @@ if __FILE__ == $0
         else
           log "ERROR: mp4 title could not be changed"
         end
-      end
+      end # if options[:title]
+      
     rescue 
       log "ERROR: Handbrake exited with an error"
-    end
+    end # HandBrake::CLI
     
   end # target_files.each
   
