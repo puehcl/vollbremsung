@@ -4,6 +4,7 @@
 require 'mkmf' # part of stdlib
 require 'open3'
 require 'json'
+require 'handbrake'
 
 def log(msg)
   puts Time.new.strftime("%Y-%m-%d %H:%M:%S") +  " #{msg}"
@@ -94,7 +95,7 @@ if __FILE__ == $0
   
   StreamStruct = Struct.new(:count,:names)
   CONVERT_TYPES = ['mkv','avi','mov','flv','mpg','wmv']
-  HANDBRAKE_OPTIONS = "--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
+  #HANDBRAKE_OPTIONS = "--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
   FFMPEG_OPTIONS = "-map 0 -acodec copy -vcodec copy -scodec copy"
   
   
@@ -144,13 +145,23 @@ if __FILE__ == $0
     
     log "processing: #{infile}"
 
-    %x( #{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..astreams.count).to_a.join(',')} --aname #{astreams.names.join(',')} --subtitle #{(1..sstreams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1 )
+    #%x( #{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..astreams.count).to_a.join(',')} --aname #{astreams.names.join(',')} --subtitle #{(1..sstreams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1 )
+
+
+    HandBrake::CLI.new.input(infile).encoder('x264').quality('20.0').aencoder('faac').
+    ab('160').mixdown('dpl2').arate('Auto').drc('0.0').format('mp4').markers.
+    audio_copy_mask('aac,ac3,dtshd,dts,mp3').audio_fallback('ffac3').x264_preset('veryfast').
+    loose_anamorphic.modulus('2').audio((1..astreams.count).to_a.join(',')).aname(astreams.names.join(',')).
+    subtitle((1..sstreams.count).to_a.join(',')).output(outfile)
+
+    
     
     if $?.exitstatus == 0
       log "SUCCESS: encoding done"
       
       insize = File.size(infile)
       outsize = File.size(outfile)
+      log "insize: #{insize}, outsize: #{outsize}"
       
       log "Output file is #{(outsize - insize) / insize * 100} % smaller"
       
