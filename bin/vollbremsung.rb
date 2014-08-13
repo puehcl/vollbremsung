@@ -111,10 +111,7 @@ if __FILE__ == $0
         target_files << file if CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
       end
     end
-
-    #Dir.entries(TARGET_PATH).each do |file|
-    #  target_files << file if CONVERT_TYPES.include?(File.extname(file).downcase[1..-1])
-    #end
+    
   else
     target_files << File.absolute_path(TARGET_PATH)
   end
@@ -125,8 +122,6 @@ if __FILE__ == $0
     puts "* #{relative_path}"
   end
 
-  #Dir.chdir(TARGET_PATH)
-  
   target_files.each do |infile|
     
     metadata = ffprobe(infile)
@@ -155,19 +150,16 @@ if __FILE__ == $0
     infile_basename = File.basename(infile)
     infile_basename_noext = File.basename(infile, File.extname(infile)) # without ext
     infile_dirname = File.dirname(infile)
-    infile_relative = infile[infile_dirname.length+1..-1]
+    infile_relative_path = infile[TARGET_PATH.length+1..-1]
 
-    #filename = File.basename(infile, File.extname(infile)) # without ext
-    #outfile = "#{filename}.mp4"
     outfile = "#{File.join(infile_dirname, infile_basename_noext)}.mp4"
     
-    #log "processing: #{infile}"
-    log "processing: #{infile_relative}" 
+    log "processing: #{infile_relative_path}" 
 
     #%x( #{HANDBRAKE_CLI} #{HANDBRAKE_OPTIONS} --audio #{(1..astreams.count).to_a.join(',')} --aname #{astreams.names.join(',')} --subtitle #{(1..sstreams.count).to_a.join(',')} -i \"#{infile}\" -o \"#{outfile}\" 2>&1 )
     
+    success = false
     begin
-      
       HandBrake::CLI.new.input(infile).encoder('x264').quality('20.0').aencoder('faac').
       ab('160').mixdown('dpl2').arate('Auto').drc('0.0').format('mp4').markers.
       audio_copy_mask('aac,ac3,dtshd,dts,mp3').audio_fallback('ffac3').x264_preset('veryfast').
@@ -176,28 +168,24 @@ if __FILE__ == $0
       
       # if we make it here, encoding went well
       log "SUCCESS: encoding done"
+      success = true
+    rescue 
+      log "ERROR: Handbrake exited with an error"
+    end # HandBrake::CLI
       
+    if success
       infile_size = File.size(infile)
       outfile_size = File.size(outfile)
 
       log "Compression ratio: %.2f" % (outfile_size.to_f / infile_size.to_f)
-      
-      if options[:move]
-        #log "renaming #{infile} to .old"
-        #File.rename infile, "#{infile}.old" 
         
-        log "moveing #{infile_relative} to *.old"
-        File.rename infile, "#{infile}.old"
-      end
-      
       if options[:title]
         log "setting mp4 title"
-        
-        #tmpfile = filename + ".tmp.mp4"
+      
         tmpfile = infile_noext + ".tmp.mp4"
-        
-        %x( ffmpeg -i \"#{outfile}\" -metadata title=\"#{filename}\" #{FFMPEG_OPTIONS} \"#{tmpfile}\" 2>&1 )
-        
+      
+        %x( ffmpeg -i \"#{outfile}\" -metadata title=\"#{infile_basename_noext}\" #{FFMPEG_OPTIONS} \"#{tmpfile}\" 2>&1 )
+      
         if $?.exitstatus == 0
           begin
             File.delete outfile
@@ -210,10 +198,12 @@ if __FILE__ == $0
         end
       end # if options[:title]
       
-    rescue 
-      log "ERROR: Handbrake exited with an error"
-    end # HandBrake::CLI
-    
+      if options[:move]
+        log "moving file to *.old"
+        File.rename infile, "#{infile}.old"
+      end
+      
+    end # if success
   end # target_files.each
   
   if target_files.empty?
