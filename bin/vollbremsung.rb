@@ -206,8 +206,11 @@ if __FILE__ == $0
       end # if options[:title]
       
       if options[:move]
-        log "moving file to *.old"
-        File.rename infile, "#{infile}.old"
+        log "moving source file to *.old"
+        File.rename(infile, "#{infile}.old") rescue log "ERROR: renaming source file"
+      elsif options[:delete]
+        log "deleting source file"
+        File.delete(infile) rescue log "ERROR: deleting source file"
       end
       
     end # if success
