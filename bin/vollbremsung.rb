@@ -102,25 +102,35 @@ if __FILE__ == $0
   
   log "probing for target files..."
   target_files = []
+  log "Files found:"
   if File.directory?(TARGET_PATH)
     
     scope = options[:recursive] ? "/**/*" : "/*"
     
     Dir[TARGET_PATH + scope].each do |file|
       unless File.directory?(file)
-        target_files << file if CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
+        if CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
+          puts "* " + file[TARGET_PATH.length+1..-1] 
+          target_files << file 
+        end
       end
     end
     
   else
+    puts "* " + TARGET_PATH
     target_files << File.absolute_path(TARGET_PATH)
   end
   
-  log "Files found:"
-  target_files.each do |file|
-    relative_path = file[TARGET_PATH.length+1..-1]
-    puts "* #{relative_path}"
-  end
+  
+  #target_files.each do |file|
+  #  relative_path = 
+  #    if File.directory?(TARGET_PATH)
+  #      file[TARGET_PATH.length+1..-1] 
+  #    else
+  #      File.basename(TARGET_PATH)
+  #    end
+  #  puts "* #{relative_path}"
+  #end
 
   target_files.each do |infile|
     
@@ -150,9 +160,15 @@ if __FILE__ == $0
     infile_basename = File.basename(infile)
     infile_basename_noext = File.basename(infile, File.extname(infile)) # without ext
     infile_dirname = File.dirname(infile)
-    infile_relative_path = infile[TARGET_PATH.length+1..-1]
+    infile_path_noext = File.join(infile_dirname, infile_basename_noext)
+    infile_relative_path = #File.directory?(TARGET_PATH) ? infile[TARGET_PATH.length+1..-1] : File.basename(TARGET_PATH)
+      if File.directory?(TARGET_PATH)
+        infile[TARGET_PATH.length+1..-1]
+      else
+        File.basename(TARGET_PATH)
+      end
 
-    outfile = "#{File.join(infile_dirname, infile_basename_noext)}.mp4"
+    outfile = "#{infile_path_noext}.mp4"
     
     log "processing: #{infile_relative_path}" 
 
@@ -177,7 +193,7 @@ if __FILE__ == $0
       infile_size = File.size(infile)
       outfile_size = File.size(outfile)
 
-      log "Compression ratio: %.2f" % (outfile_size.to_f / infile_size.to_f)
+      log "compression ratio: %.2f" % (outfile_size.to_f / infile_size.to_f)
         
       if options[:title]
         log "setting mp4 title"
