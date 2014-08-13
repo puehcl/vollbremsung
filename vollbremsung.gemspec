@@ -1,4 +1,9 @@
-Gem::Specification.new do |s|
+# encoding: utf-8
+lib = File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'vollbremsung'
+
+Gem::Specification.new do |spec|
   spec.name        = 'vollbremsung'
   spec.version     = Vollbremsung::VERSION
   spec.date        = '2014-08-13'
@@ -13,9 +18,6 @@ Gem::Specification.new do |s|
   
   spec.require_paths = ['lib']
   
-  spec.add_dependency 'json' 
-  spec.add_dependency 'mkmf' # part of stdlib
-  spec.add_dependency 'open3'
-  spec.add_dependency 'json'
-  spec.add_dependency 'handbrake'
+  spec.required_ruby_version = '>= 1.9.3'
+  spec.add_dependency 'handbrake', '~> 0'
 end
