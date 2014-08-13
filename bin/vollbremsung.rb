@@ -120,17 +120,6 @@ if __FILE__ == $0
     puts "* " + TARGET_PATH
     target_files << File.absolute_path(TARGET_PATH)
   end
-  
-  
-  #target_files.each do |file|
-  #  relative_path = 
-  #    if File.directory?(TARGET_PATH)
-  #      file[TARGET_PATH.length+1..-1] 
-  #    else
-  #      File.basename(TARGET_PATH)
-  #    end
-  #  puts "* #{relative_path}"
-  #end
 
   target_files.each do |infile|
     
