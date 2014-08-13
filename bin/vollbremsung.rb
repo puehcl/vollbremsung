@@ -149,6 +149,11 @@ if __FILE__ == $0
     if $?.exitstatus == 0
       log "SUCCESS: encoding done"
       
+      insize = File.size(infile)
+      outsize = File.size(outfile)
+      
+      log "Output file is #{(outsize - insize) / insize * 100} % smaller"
+      
       if options[:rename]
         log "renaming #{infile} to .old"
         File.rename infile, "#{infile}.old" 
