@@ -48,7 +48,7 @@ OptionParser.new do |opts|
     options[:title] = true
   end
   
-  opts.on("--x264-preset [PRESET]", "Set the x264-preset. Default is #{Vollbremsung::X264_DEFAULT_PRESET}") do |preset|
+  opts.on("--x264-preset [PRESET]", "Set the x264-preset. Default is: #{Vollbremsung::X264_DEFAULT_PRESET}") do |preset|
     options[:x264_preset] = preset
   end
 
@@ -63,7 +63,7 @@ options[:x264_preset] = Vollbremsung::X264_DEFAULT_PRESET if options[:x264_prese
 
 
 if ARGV[0].nil? 
-  puts "No target directory provided."
+  puts "No target provided."
   puts Vollbremsung::USAGE
   exit 1
 end
