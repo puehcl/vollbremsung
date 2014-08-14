@@ -54,7 +54,7 @@ OptionParser.new do |opts|
     options[:recursive] = true
   end
 
-  opts.on("-t", "--title", "Set the MP4 title to the filename") do |flag|
+  opts.on("-t", "--title", "Set the MP4 metadata title tag to the filename") do |flag|
     options[:title] = true
   end
   
