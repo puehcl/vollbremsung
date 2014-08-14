@@ -27,6 +27,16 @@ options = {}
 OptionParser.new do |opts|
   opts.banner = Vollbremsung::USAGE
   opts.separator ""
+  opts.separator "vollbremsung is a HandbrakeCLI bulk encoding tool."
+  opts.separator "If <target> is a file, it will be processed by Handbrake"
+  opts.separator "using a modified version of the default preset which will"
+  opts.separator "take all audio and subtitle tracks in their order of appearence"
+  opts.separator "(Handbrake default takes only the first)"
+  opts.separator ""
+  opts.separator "If <target> is a directory, all files with one of the file"
+  opts.separator "extensions [ #{Vollbremsung::CONVERT_TYPES.join(' | ')} ] will be"
+  opts.separator "be processed. See the following options for additional actions."
+  opts.separator ""
 
   opts.on("-d", "--delete", "Delete source files after successful encoding") do |flag|
     options[:delete]  = true
@@ -36,20 +46,24 @@ OptionParser.new do |opts|
     options[:list_only]  = true
   end
 
-  opts.on("-m", "--move", "Move source files to <FILENAME>.old after successful encoding") do |flag|
+  opts.on("-m", "--move", "Move source files to <FILENAME>.old after encoding") do |flag|
     options[:move] = true
   end
 
-  opts.on("-r", "--recursive", "Process all file in subdirectories recursively as well") do |flag|
+  opts.on("-r", "--recursive", "Process subdirectories recursively as well") do |flag|
     options[:recursive] = true
   end
 
-  opts.on("-t", "--title", "Set the mp4 title to the filename") do |flag|
+  opts.on("-t", "--title", "Set the MP4 title to the filename") do |flag|
     options[:title] = true
   end
   
   opts.on("--x264-preset [PRESET]", "Set the x264-preset. Default is: #{Vollbremsung::X264_DEFAULT_PRESET}") do |preset|
     options[:x264_preset] = preset
+  end
+  
+  opts.on("--version", "Show program version information") do
+    options[:version]  = true
   end
 
   opts.on_tail("-h", "--help", "Show this message") do
@@ -57,6 +71,12 @@ OptionParser.new do |opts|
     exit
   end
 end.parse! # do the parsing. do it now!
+
+
+if options[:version]
+  puts "vollbremsung version #{Vollbremsung::VERSION}"
+  exit
+end
 
 
 options[:x264_preset] = Vollbremsung::X264_DEFAULT_PRESET if options[:x264_preset].nil?
