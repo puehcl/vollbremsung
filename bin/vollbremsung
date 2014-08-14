@@ -47,12 +47,19 @@ OptionParser.new do |opts|
   opts.on("-t", "--title", "Set the mp4 title to the filename") do |flag|
     options[:title] = true
   end
+  
+  opts.on("--x264-preset [PRESET]", "Set the x264-preset. Default is #{Vollbremsung::X264_DEFAULT_PRESET}") do |preset|
+    options[:x264_preset] = preset
+  end
 
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
     exit
   end
 end.parse! # do the parsing. do it now!
+
+
+options[:x264_preset] = Vollbremsung::X264_DEFAULT_PRESET if options[:x264_preset].nil?
 
 
 if ARGV[0].nil? 
@@ -164,7 +171,7 @@ target_files.each do |infile|
   begin
     HandBrake::CLI.new.input(infile).encoder('x264').quality('20.0').aencoder('faac').
     ab('160').mixdown('dpl2').arate('Auto').drc('0.0').format('mp4').markers.
-    audio_copy_mask('aac,ac3,dtshd,dts,mp3').audio_fallback('ffac3').x264_preset('veryfast').
+    audio_copy_mask('aac,ac3,dtshd,dts,mp3').audio_fallback('ffac3').x264_preset(options[:x264_preset]).
     loose_anamorphic.modulus('2').audio((1..astreams.count).to_a.join(',')).aname(astreams.names.join(',')).
     subtitle((1..sstreams.count).to_a.join(',')).output(outfile)
     
