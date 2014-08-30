@@ -129,7 +129,7 @@ if File.directory?(TARGET_PATH)
   
   scope = options[:recursive] ? "/**/*" : "/*"
   
-  Dir[TARGET_PATH + scope].sort.each do |file|
+  Dir[File.absolute_path(TARGET_PATH) + scope].sort.each do |file|
     unless File.directory?(file)
       if Vollbremsung::CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
         puts "* " + file[TARGET_PATH.length+1..-1] 
