@@ -132,7 +132,7 @@ if File.directory?(TARGET_PATH)
   Dir[File.absolute_path(TARGET_PATH) + scope].sort.each do |file|
     unless File.directory?(file)
       if Vollbremsung::CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
-        puts "* " + File.absolute_path(file)[TARGET_PATH.length+1..-1] 
+        puts "* " + File.absolute_path(file)[File.absolute_path(TARGET_PATH).length+1..-1] 
         target_files << file 
       end
     end
