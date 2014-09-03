@@ -191,7 +191,7 @@ target_files.each do |infile|
   begin
     HandBrake::CLI.new.input(infile).encoder('x264').quality('20.0').aencoder('faac').
     ab('160').mixdown('dpl2').arate('Auto').drc('0.0').format('mp4').markers.
-    audio_copy_mask('aac,ac3,dtshd,dts,mp3').audio_fallback('ffac3').x264_preset(options[:x264_preset]).
+    audio_copy_mask('aac').audio_fallback('ffac3').x264_preset(options[:x264_preset]).
     loose_anamorphic.modulus('2').audio((1..astreams.count).to_a.join(',')).aname(astreams.names.join(',')).
     subtitle((1..sstreams.count).to_a.join(',')).output(outfile)
     
