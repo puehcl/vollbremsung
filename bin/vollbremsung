@@ -181,7 +181,7 @@ target_files.each do |infile|
       File.basename(TARGET_PATH)
     end
 
-  outfile = "#{infile_path_noext}.mp4"
+  outfile = "#{infile_path_noext}.m4v"
   
   log "processing: #{infile_relative_path}" 
 
