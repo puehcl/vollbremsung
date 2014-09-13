@@ -2,7 +2,7 @@
 
 [![Gem Version](https://badge.fury.io/rb/vollbremsung.svg)](http://badge.fury.io/rb/vollbremsung)
 
-`vollbremsung` is a HandbrakeCLI bulk encoding tool, desigend to reencode a file structure to a DLNA enabled TV compatible format comfortably.
+`vollbremsung` is a [Handbrake](https://handbrake.fr) bulk encoding tool, desigend to reencode a file structure to a DLNA enabled TV compatible format comfortably.
 
 ## Installation
 
@@ -10,7 +10,7 @@ Just run ```gem install vollbremsung```
 
 ### Dependencies
 
-You need to have `ffmpeg`, `ffprobe` and `HandbrakeCLI` (on FreeBSD it's `HandBrakeCLI`) somewhere in your `$PATH`.
+You need to have `ffmpeg`, `ffprobe` and `HandbrakeCLI` (on FreeBSD it's `HandBrakeCLI` if installed from the Portstree) somewhere in your `$PATH`.
 
 ## Usage
 
