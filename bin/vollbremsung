@@ -122,12 +122,15 @@ File.delete 'mkmf.log' rescue nil# find_executable seems to create such file in 
 
 #HANDBRAKE_OPTIONS = "--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
 
-log "probing for target files..."
+
 target_files = []
-log "Files found:"
+
 if File.directory?(TARGET_PATH)
   
   scope = options[:recursive] ? "/**/*" : "/*"
+  
+  log "probing for target files in #{File.absolute_path(TARGET_PATH) + scope}"
+  log "Files found:"
   
   Dir[File.absolute_path(TARGET_PATH) + scope].sort.each do |file|
     unless File.directory?(file)
