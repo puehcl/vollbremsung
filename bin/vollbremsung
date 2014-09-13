@@ -22,6 +22,13 @@ def ffprobe(file)
   end
 end
 
+# square brackets have a special meaning in the context of shell globbing
+# --> escape them in order to find files in directories with [, ], {, }
+# symbols in their path
+def escape_glob(s)
+  s.gsub(/[\\\{\}\[\]\*\?]/) { |x| "\\"+x }
+end
+
 options = {}
 
 OptionParser.new do |opts|
@@ -107,18 +114,22 @@ unless options[:list_only]
   unless find_executable('HandbrakeCLI') || find_executable('HandBrakeCLI')
     puts "It seems you do not have HandbrakeCLI installed or it is not available in your $PATH."
     puts "You can get the executable from http://handbrake.fr/downloads.php"
+    
+    File.delete 'mkmf.log' if File.exists?('mkmf.log') # find_executable seems to create such file in case executable is not found
     exit 1
   end
 
   unless find_executable 'ffprobe'
     puts "It seems you do not have ffprobe installed or it is not available in your $PATH."
     puts "ffprobe is part of ffmpeg. Install it for your system and run again."
+    
+    File.delete 'mkmf.log' if File.exists?('mkmf.log') # find_executable seems to create such file in case executable is not found
     exit 1
   end
 end
 
 
-File.delete 'mkmf.log' rescue nil# find_executable seems to create such file in case executable is not found
+
 
 #HANDBRAKE_OPTIONS = "--encoder x264 --quality 20.0 --aencode faac -B 160 --mixdown dpl2 --arate Auto -D 0.0 --format mp4 --markers --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 --x264-preset veryfast --loose-anamorphic --modulus 2"
 
@@ -130,9 +141,9 @@ if File.directory?(TARGET_PATH)
   scope = options[:recursive] ? "/**/*" : "/*"
   
   log "probing for target files in #{File.absolute_path(TARGET_PATH) + scope}"
-  log "Files found:"
+  log "files found:"
   
-  Dir[File.absolute_path(TARGET_PATH) + scope].sort.each do |file|
+  Dir[escape_glob(File.absolute_path(TARGET_PATH)) + scope].sort.each do |file|
     unless File.directory?(file)
       if Vollbremsung::CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
         puts "* " + File.absolute_path(file)[File.absolute_path(TARGET_PATH).length+1..-1] 
