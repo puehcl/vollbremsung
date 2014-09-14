@@ -1,4 +1,4 @@
-# vollbremsung: Handbrake bulk encoding tool
+# vollbremsung
 
 [![Gem Version](https://badge.fury.io/rb/vollbremsung.svg)](http://badge.fury.io/rb/vollbremsung)
 
@@ -26,16 +26,19 @@ The `--delete` and `--move` option allow post processing actions. `delete` will 
 
 Additionally, `vollbremsung` can set the MP4 title tag to the filename via the `--title` option, in case the old file title metadata is somewhat misshampen.
 
+Per default the `m4v` file extension is used to indicate that the files contain video content. It turned out that some TVs can't handle this extension and require plain `mp4`. The `--mp4-ext` option will make `vollbremsung` create `mp4` files. You can of course rename the output files manually as well.  
+
 If you only want to know which files would match for a given target, use the `--list-only` option. No processing will be done, just the matches printed. 
 	
 ### Complete list of options
 
     -d, --delete                     Delete source files after successful encoding
         --list-only                  List matching files only. Do not run processing
+        --mp4-ext                    Use 'mp4' as file extension instead of 'm4v'
     -m, --move                       Move source files to <FILENAME>.old after encoding
     -r, --recursive                  Process subdirectories recursively as well
     -t, --title                      Set the MP4 metadata title tag to the filename
-        --x264-preset [PRESET]       Set the x264-preset. Default is: veryfast
+        --x264-preset PRESET         Set the x264-preset. Default is: veryfast
         --version                    Show program version information
     -h, --help                       Show this message
 	
