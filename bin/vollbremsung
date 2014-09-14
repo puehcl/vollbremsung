@@ -29,7 +29,7 @@ def escape_glob(s)
   s.gsub(/[\\\{\}\[\]\*\?]/) { |x| "\\"+x }
 end
 
-options = {}
+options = { :extension => "m4v" }
 
 OptionParser.new do |opts|
   opts.banner = Vollbremsung::USAGE
@@ -52,7 +52,11 @@ OptionParser.new do |opts|
   opts.on("--list-only", "List matching files only. Do not run processing") do |flag|
     options[:list_only]  = true
   end
-
+  
+  opts.on("--mp4-ext", "Use 'mp4' as file extension instead of 'm4v'") do |flag|
+    options[:extension] = "mp4"
+  end
+  
   opts.on("-m", "--move", "Move source files to <FILENAME>.old after encoding") do |flag|
     options[:move] = true
   end
@@ -64,7 +68,7 @@ OptionParser.new do |opts|
   opts.on("-t", "--title", "Set the MP4 metadata title tag to the filename") do |flag|
     options[:title] = true
   end
-  
+    
   opts.on("--x264-preset [PRESET]", "Set the x264-preset. Default is: #{Vollbremsung::X264_DEFAULT_PRESET}") do |preset|
     options[:x264_preset] = preset
   end
@@ -195,7 +199,7 @@ target_files.each do |infile|
       File.basename(TARGET_PATH)
     end
 
-  outfile = "#{infile_path_noext}.m4v"
+  outfile = "#{infile_path_noext}.#{options[:extension]}"
   
   log "processing: #{infile_relative_path}" 
 
