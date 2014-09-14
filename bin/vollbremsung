@@ -99,11 +99,13 @@ if ARGV[0].nil?
   exit 1
 end
 
-TARGET_PATH = ARGV[0]
+#TARGET_PATH = ARGV[0]
 
-unless File.exists?(TARGET_PATH)
-  puts "The target path you provided does not exists."
-  exit 1
+ARGV.each do |target|
+  unless File.exists?(target)
+    puts "The target #{target} does not exist."
+    exit 1
+  end
 end
 
 if options[:move] && options[:delete]
@@ -130,6 +132,8 @@ unless options[:list_only]
     File.delete 'mkmf.log' if File.exists?('mkmf.log') # find_executable seems to create such file in case executable is not found
     exit 1
   end
+  
+  File.delete 'mkmf.log' if File.exists?('mkmf.log') # find_executable seems to create such file in case executable is not found
 end
 
 
@@ -140,25 +144,29 @@ end
 
 target_files = []
 
-if File.directory?(TARGET_PATH)
+scope = options[:recursive] ? "/**/*" : "/*"
+
+ARGV.each do |target|
+
+  if File.directory?(target)
+    
+    log "probing for target files in #{File.absolute_path(target) + scope}"
+    log "files found:"
   
-  scope = options[:recursive] ? "/**/*" : "/*"
-  
-  log "probing for target files in #{File.absolute_path(TARGET_PATH) + scope}"
-  log "files found:"
-  
-  Dir[escape_glob(File.absolute_path(TARGET_PATH)) + scope].sort.each do |file|
-    unless File.directory?(file)
-      if Vollbremsung::CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
-        puts "* " + File.absolute_path(file)[File.absolute_path(TARGET_PATH).length+1..-1] 
-        target_files << file 
+    Dir[escape_glob(File.absolute_path(target)) + scope].sort.each do |file|
+      unless File.directory?(file)
+        if Vollbremsung::CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
+          puts "* " + File.absolute_path(file)[File.absolute_path(target).length+1..-1] 
+          target_files << file 
+        end
       end
     end
+  
+  else
+    puts "* " + target
+    target_files << File.absolute_path(target)
   end
   
-else
-  puts "* " + TARGET_PATH
-  target_files << File.absolute_path(TARGET_PATH)
 end
 
 exit if options[:list_only]

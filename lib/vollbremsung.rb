@@ -1,6 +1,6 @@
 module Vollbremsung
   
-  USAGE   = "Usage: vollbremsung [options] <target>"
+  USAGE   = "Usage: vollbremsung [options] target [target [...]]"
   VERSION = '0.0.16'
   CONVERT_TYPES = ['mkv','avi','mov','flv','mpg','wmv','ogm']
   FFMPEG_OPTIONS = "-map 0 -acodec copy -vcodec copy -scodec copy"
