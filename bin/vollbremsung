@@ -157,21 +157,21 @@ ARGV.each do |target|
       unless File.directory?(file)
         if Vollbremsung::CONVERT_TYPES.include?(File.extname(file).downcase[1..-1]) 
           puts "* " + File.absolute_path(file)[File.absolute_path(target).length+1..-1] 
-          target_files << file 
+          target_files << [file,target] # file and provided target_dir 
         end
       end
     end
   
   else
     puts "* " + target
-    target_files << File.absolute_path(target)
+    target_files << [File.absolute_path(target),File.absolute_path(target)]
   end
   
 end
 
 exit if options[:list_only]
 
-target_files.each do |infile|
+target_files.each do |infile, target_dir|
   
   metadata = ffprobe(infile)
   if metadata.nil?
@@ -201,10 +201,10 @@ target_files.each do |infile|
   infile_dirname = File.dirname(infile)
   infile_path_noext = File.join(infile_dirname, infile_basename_noext)
   infile_relative_path = #File.directory?(TARGET_PATH) ? infile[TARGET_PATH.length+1..-1] : File.basename(TARGET_PATH)
-    if File.directory?(TARGET_PATH)
-      File.absolute_path(infile)[File.absolute_path(TARGET_PATH).length+1..-1] 
+    if File.directory?(target_dir)
+      File.absolute_path(infile)[File.absolute_path(target_dir).length+1..-1] 
     else
-      File.basename(TARGET_PATH)
+      File.basename(target_dir)
     end
 
   outfile = "#{infile_path_noext}.#{options[:extension]}"
