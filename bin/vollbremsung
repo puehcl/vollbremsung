@@ -251,6 +251,7 @@ target_files.each do |infile, target_dir|
         end
       else
         log "ERROR: MP4 title could not be changed"
+        File.delete tmpfile
       end
     end # if options[:title]
     
